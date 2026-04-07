@@ -125,7 +125,7 @@ filtered_df = filtered_df[
 if name_pattern.strip() != "":
     pattern = rf"^{re.escape(name_pattern)}"
     filtered_df = filtered_df[
-        filtered_df["Game_Name"].str.contains(pattern, case=False, na=False, regex=True)
+        filtered_df["Game_Name"].str.contains(pattern, case=False, na=False, na=False)
     ]
 
 # -----------------------------
