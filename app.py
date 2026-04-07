@@ -3,23 +3,30 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 
+
 # -----------------------------
 # PAGE SETTINGS
+# Set up the app title and layout
 # -----------------------------
-st.set_page_config(page_title="Video Game Sales Analysis", layout="wide")
+st.set_page_config(page_title="Video Game Sales Dashboard", layout="wide")
 st.title("Video Game Sales Web App")
 st.write("This app loads, cleans, analyzes, and visualizes video game sales data.")
 
+
 # -----------------------------
 # LOAD DATA
+# Load dataset from CSV file
 # -----------------------------
 csv_path = "vgsales.csv"
 df = pd.read_csv(csv_path)
 
+
 # -----------------------------
 # DATA CLEANING
+# Prepare the dataset for analysis
 # -----------------------------
-# Rename columns for easier reading in the app
+
+# Rename columns to make them clearer and easier to use
 df = df.rename(columns={
     "Name": "Game_Name",
     "Year": "Release_Year",
@@ -30,24 +37,26 @@ df = df.rename(columns={
     "Global_Sales": "Global_Sales"
 })
 
-# Remove duplicate rows
+# Remove duplicate rows to avoid repeated data
 df = df.drop_duplicates()
 
-# Fill missing publisher with "Unknown"
+# Fill missing publisher values with "Unknown"
 df["Publisher"] = df["Publisher"].fillna("Unknown")
 
-# Fill missing year with median year
+# Fill missing year values using the median year
 median_year = int(df["Release_Year"].median())
 df["Release_Year"] = df["Release_Year"].fillna(median_year)
 
-# Convert year to integer
+# Convert year column to integer format
 df["Release_Year"] = df["Release_Year"].astype(int)
 
-# Create a full label similar to the student full name example
+# Create a new column combining game name and platform
 df["Game_Label"] = df["Game_Name"] + " (" + df["Platform"] + ")"
+
 
 # -----------------------------
 # SIDEBAR FILTERS
+# Allow users to filter the dataset
 # -----------------------------
 st.sidebar.header("Filter Options")
 
@@ -68,10 +77,13 @@ year_range = st.sidebar.slider(
     value=(int(df["Release_Year"].min()), int(df["Release_Year"].max()))
 )
 
-name_pattern = st.sidebar.text_input("Search game names starting with letter(s)", "")
+# Text input for searching game names
+name_pattern = st.sidebar.text_input("Search game names", "")
+
 
 # -----------------------------
 # APPLY FILTERS
+# Filter dataset based on user selections
 # -----------------------------
 filtered_df = df.copy()
 
@@ -81,28 +93,33 @@ if selected_genre != "All":
 if selected_platform != "All":
     filtered_df = filtered_df[filtered_df["Platform"] == selected_platform]
 
+# Filter based on selected year range
 filtered_df = filtered_df[
     (filtered_df["Release_Year"] >= year_range[0]) &
     (filtered_df["Release_Year"] <= year_range[1])
 ]
 
-# Regex filter like the demo
+# Apply search filter if user enters text
 if name_pattern.strip() != "":
     pattern = rf"^{re.escape(name_pattern)}"
     filtered_df = filtered_df[
         filtered_df["Game_Name"].str.contains(pattern, case=False, na=False, regex=True)
     ]
 
+
 # -----------------------------
 # SHOW DATA
+# Display dataset preview
 # -----------------------------
 st.header("Dataset Preview")
 st.write("Original dataset size:", df.shape)
 st.write("Filtered dataset size:", filtered_df.shape)
 st.dataframe(filtered_df.head(20))
 
+
 # -----------------------------
 # METRICS
+# Display key summary statistics
 # -----------------------------
 st.header("Important Metrics")
 
@@ -110,19 +127,23 @@ total_games = filtered_df.shape[0]
 total_global_sales = filtered_df["Global_Sales"].sum()
 average_global_sales = filtered_df["Global_Sales"].mean()
 
+# Find top-selling game
 if total_games > 0:
     top_game = filtered_df.loc[filtered_df["Global_Sales"].idxmax(), "Game_Name"]
 else:
     top_game = "No data"
 
+# Display metrics in columns
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Total Games", total_games)
 col2.metric("Total Global Sales", f"{total_global_sales:.2f} million")
-col3.metric("Average Global Sales", f"{average_global_sales:.2f} million" if total_games > 0 else "0.00 million")
+col3.metric("Average Global Sales", f"{average_global_sales:.2f} million")
 col4.metric("Top Game", top_game)
 
+
 # -----------------------------
-# CHART 1: TOP 10 GAMES
+# CHART 1
+# Top 10 games by global sales
 # -----------------------------
 st.header("Top 10 Games by Global Sales")
 
@@ -136,11 +157,11 @@ if total_games > 0:
     ax1.set_ylabel("Global Sales (millions)")
     plt.xticks(rotation=45, ha="right")
     st.pyplot(fig1)
-else:
-    st.warning("No data available for this chart.")
+
 
 # -----------------------------
-# CHART 2: SALES BY GENRE
+# CHART 2
+# Total sales by genre
 # -----------------------------
 st.header("Global Sales by Genre")
 
@@ -154,11 +175,11 @@ if total_games > 0:
     ax2.set_ylabel("Global Sales (millions)")
     plt.xticks(rotation=45)
     st.pyplot(fig2)
-else:
-    st.warning("No data available for this chart.")
+
 
 # -----------------------------
-# CHART 3: SALES TREND BY YEAR
+# CHART 3
+# Sales trend over time
 # -----------------------------
 st.header("Global Sales Trend by Release Year")
 
@@ -171,36 +192,3 @@ if total_games > 0:
     ax3.set_xlabel("Release Year")
     ax3.set_ylabel("Global Sales (millions)")
     st.pyplot(fig3)
-else:
-    st.warning("No data available for this chart.")
-
-# -----------------------------
-# CHART 4: NA VS EU SALES
-# -----------------------------
-st.header("North America Sales vs Europe Sales")
-
-if total_games > 0:
-    fig4, ax4 = plt.subplots(figsize=(8, 5))
-    ax4.scatter(filtered_df["North_America_Sales"], filtered_df["Europe_Sales"])
-    ax4.set_title("North America Sales vs Europe Sales")
-    ax4.set_xlabel("North America Sales (millions)")
-    ax4.set_ylabel("Europe Sales (millions)")
-    st.pyplot(fig4)
-else:
-    st.warning("No data available for this chart.")
-
-# -----------------------------
-# SUMMARY TABLE
-# -----------------------------
-st.header("Summary Table by Platform")
-
-if total_games > 0:
-    platform_summary = filtered_df.groupby("Platform").agg(
-        Number_of_Games=("Game_Name", "count"),
-        Total_Global_Sales=("Global_Sales", "sum"),
-        Average_Global_Sales=("Global_Sales", "mean")
-    ).sort_values(by="Total_Global_Sales", ascending=False)
-
-    st.dataframe(platform_summary)
-else:
-    st.warning("No data available for summary table.")
