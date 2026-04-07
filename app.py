@@ -243,6 +243,24 @@ plt.tight_layout()
 st.pyplot(fig4)
 
 # -----------------------------
+# CHART 5
+# Scatter plot: NA vs EU sales
+# -----------------------------
+st.header("North America vs Europe Sales")
+
+fig5, ax5 = plt.subplots(figsize=(8, 5))
+ax5.scatter(
+    filtered_df["North_America_Sales"],
+    filtered_df["Europe_Sales"]
+)
+
+ax5.set_title("North America vs Europe Sales")
+ax5.set_xlabel("North America Sales (millions)")
+ax5.set_ylabel("Europe Sales (millions)")
+
+st.pyplot(fig5)
+
+# -----------------------------
 # SUMMARY TABLE
 # Show a summary of sales by platform
 # -----------------------------
