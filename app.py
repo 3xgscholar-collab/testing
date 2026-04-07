@@ -13,7 +13,7 @@ st.write("This app loads, cleans, analyzes, and visualizes video game sales data
 # -----------------------------
 # LOAD DATA
 # -----------------------------
-csv_path = r"C:\Users\xavie\OneDrive\BdatProgramming\Project\vgsales (1).csv"
+csv_path = "vgsales.csv"
 df = pd.read_csv(csv_path)
 
 # -----------------------------
